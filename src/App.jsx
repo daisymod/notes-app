@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import {nanoid} from 'nanoid'
 import Editor from './components/Editor'
 import Sidebar from './components/Sidebar'
 import Split from "react-split"
@@ -11,10 +10,16 @@ import { addDoc, onSnapshot, doc, deleteDoc, setDoc } from 'firebase/firestore'
 function App() {
   const [notes, setNotes] = useState([])
   const [currentNoteId, setCurrentNoteId] = useState("")
+  const [tempNoteText, setTempNoteText] = useState("")
 
   const currentNote = 
     notes.find(note => note.id === currentNoteId) 
     || notes[0]
+
+  const sortedNotes = notes.sort(function(a, b){
+    // a - one note obj and b - other note obj
+    return b.updatedAt - a.updatedAt;
+  })
 
   useEffect(()=>{
     // snapShot is the most updated version of notesCollection from the database
@@ -34,18 +39,49 @@ function App() {
       setCurrentNoteId(notes[0]?.id)
     }
   }, [notes])
+
+  useEffect(() => {
+    if(currentNote){
+      setTempNoteText(currentNote.body)
+    }
+  }, [currentNote])
+
+  /**
+   * Effect runs any time the tempNoteText changes
+   * Delaying requests to the Firestore
+   * setTimeout(f(), how long to wait)
+   * clearTimeout to cancel the timeout to eliminate
+   * side effects, so new timeout will be created 
+   * when the tempNoteText changes
+   */
+  useEffect(()=>{
+    const timeoutId = setTimeout(()=>{
+      if(tempNoteText !== currentNote.body){
+        updateNote(tempNoteText)
+      }
+    }, 500)
+    return () => clearTimeout(timeoutId)
+  }, [tempNoteText])
+
   
   async function createNewNote() {
     const newNote = {
-      body: "# Type your markdown note's title here"
+      body: "# Note",
+      createdAt: Date.now(),
+      updatedAt: Date.now()
     }
     const newNoteRef = await addDoc(notesCollection, newNote)
     setCurrentNoteId(newNoteRef.id)
   }
   
-  async function updateNote(text) {    
+  async function updateNote(text) {  
+    // db request is being triggered on every keystroke thus need debiuncing
     const docRef = doc(db, "notes", currentNoteId)
-    await setDoc(docRef, {body: text}, {merge: true})
+    await setDoc(
+      docRef, 
+      {body: text, updatedAt: Date.now()}, 
+      {merge: true}
+    )
   }
 
   async function deleteNote(noteId){
@@ -64,15 +100,15 @@ function App() {
         className="split"
       >
         <Sidebar
-          notes={notes}
+          notes={sortedNotes}
           currentNote={currentNote}
           setCurrentNoteId={setCurrentNoteId}
           newNote={createNewNote}
           deleteNote={deleteNote}
         />
         <Editor 
-          currentNote={currentNote} 
-          updateNote={updateNote} 
+          tempNoteText={tempNoteText} 
+          setTempNoteText={setTempNoteText} 
         />
         
       </Split>
