@@ -1,8 +1,13 @@
-# React + Vite
+# Notes app
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite
 
-Currently, two official plugins are available:
+What is done:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- project bootstrapping
+- adding note's summary title
+- Firebase Firestore setup
+- using onSnapshot()
+- bumping recent note to the top (sorting based on updated_at)
+- deleting note and from Firestore db
+- updating note and saving it in Firestore db
