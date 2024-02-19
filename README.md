@@ -1,6 +1,6 @@
 # Notes app
 
-React + Vite
+deployed: https://notes-daisy.netlify.app/
 
 What is done:
 
